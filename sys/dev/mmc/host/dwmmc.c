@@ -36,6 +36,7 @@
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
+#include "opt_platform.h"
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/conf.h>
@@ -52,12 +53,14 @@ __FBSDID("$FreeBSD$");
 
 #include <dev/mmc/bridge.h>
 #include <dev/mmc/mmcbrvar.h>
+#ifdef FDT
 #include <dev/mmc/mmc_fdt_helpers.h>
 
 #include <dev/fdt/fdt_common.h>
 #include <dev/ofw/openfirm.h>
 #include <dev/ofw/ofw_bus.h>
 #include <dev/ofw/ofw_bus_subr.h>
+#endif
 
 #include <machine/bus.h>
 #include <machine/cpu.h>
@@ -512,6 +515,7 @@ dwmmc_card_task(void *arg, int pending __unused)
 #endif /* MMCCAM */
 }
 
+#ifdef FDT
 static int
 parse_fdt(struct dwmmc_softc *sc)
 {
@@ -673,6 +677,7 @@ parse_fdt(struct dwmmc_softc *sc)
 fail:
 	return (ENXIO);
 }
+#endif
 
 int
 dwmmc_attach(device_t dev)
@@ -688,11 +693,14 @@ dwmmc_attach(device_t dev)
 	/* Why not to use Auto Stop? It save a hundred of irq per second */
 	sc->use_auto_stop = 1;
 
-	error = parse_fdt(sc);
-	if (error != 0) {
-		device_printf(dev, "Can't get FDT property.\n");
-		return (ENXIO);
-	}
+#ifdef FDT
+	parse_fdt(sc);
+#else
+	if (!sc->bus_hz) {
+                device_printf(dev, "Can't get device properties\n");
+                return (ENXIO);
+        }
+#endif
 
 	DWMMC_LOCK_INIT(sc);
 
@@ -901,7 +909,9 @@ dwmmc_update_ios(device_t brdev, device_t reqdev)
 	dprintf("Setting up clk %u bus_width %d, timming: %d\n",
 		ios->clock, ios->bus_width, ios->timing);
 
+#ifdef EXT_RESOURCES
 	mmc_fdt_set_power(&sc->mmc_helper, ios->power_mode);
+#endif
 
 	if (ios->bus_width == bus_width_8)
 		WRITE4(sc, SDMMC_CTYPE, SDMMC_CTYPE_8BIT);
