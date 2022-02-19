@@ -142,6 +142,8 @@ dev/acpica/acpi_if.m				optional acpi
 dev/acpica/acpi_pci_link.c			optional acpi pci
 dev/acpica/acpi_pcib.c				optional acpi pci
 dev/acpica/acpi_pxm.c				optional acpi
+dev/acpica/acpi_subr.c				optional acpi
+
 dev/ahci/ahci_generic.c				optional ahci
 
 cddl/dev/dtrace/aarch64/dtrace_asm.S		optional dtrace compile-with "${DTRACE_S}"
@@ -185,6 +187,9 @@ dev/dpaa2/memac_mdio_if.m			optional soc_nxp_ls dpaa2 acpi | soc_nxp_ls dpaa2 fd
 
 dev/dwc/if_dwc.c				optional fdt dwc_rk soc_rockchip_rk3328 | fdt dwc_rk soc_rockchip_rk3399 | fdt dwc_socfpga soc_intel_stratix10
 dev/dwc/if_dwc_if.m				optional fdt dwc_rk soc_rockchip_rk3328 | fdt dwc_rk soc_rockchip_rk3399 | fdt dwc_socfpga soc_intel_stratix10
+
+dev/eqos/eqos.c					optional eqos
+dev/eqos/eqos_acpi.c				optional eqos acpi
 
 dev/gpio/pl061.c				optional pl061 gpio
 dev/gpio/pl061_acpi.c				optional pl061 gpio acpi
@@ -264,7 +269,8 @@ dev/ipmi/ipmi_smic.c				optional ipmi
 
 dev/mbox/mbox_if.m				optional soc_brcm_bcm2837
 
-dev/mmc/host/dwmmc.c				optional dwmmc fdt
+dev/mmc/host/dwmmc.c				optional dwmmc fdt | acpi
+dev/mmc/host/dwmmc_acpi.c			optional dwmmc acpi
 dev/mmc/host/dwmmc_altera.c			optional dwmmc dwmmc_altera fdt
 dev/mmc/host/dwmmc_hisi.c			optional dwmmc dwmmc_hisi fdt
 dev/mmc/host/dwmmc_rockchip.c			optional dwmmc rk_dwmmc fdt

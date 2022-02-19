@@ -54,7 +54,9 @@ struct dwmmc_softc {
 	device_t		dev;
 	void			*intr_cookie;
 	struct mmc_host		host;
-	struct mmc_helper	mmc_helper;
+#ifdef FDT
+	struct mmc_fdt_helper	mmc_helper;
+#endif
 	struct mtx		sc_mtx;
 #ifdef MMCCAM
 	union ccb *		ccb;
