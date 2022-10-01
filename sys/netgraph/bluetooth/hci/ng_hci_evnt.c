@@ -121,6 +121,7 @@ ng_hci_process_event(ng_hci_unit_p unit, struct mbuf *event)
 	case NG_HCI_EVENT_VENDOR:
 	case NG_HCI_EVENT_REMOTE_NAME_REQ_COMPL:
 	case NG_HCI_EVENT_READ_REMOTE_VER_INFO_COMPL:
+	case NG_HCI_EVENT_IO_CAPABILITY_REQUEST:
 		/* These do not need post processing */
 		NG_FREE_M(event);
 		break;
