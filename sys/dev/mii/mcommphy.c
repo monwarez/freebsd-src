@@ -24,15 +24,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-/* $NetBSD: mcommphy.c,v 1.1 2022/01/03 17:18:12 jmcneill Exp $ */
-
-#include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
 
 /*
  * Motorcomm YT8511C / YT8511H Integrated 10/100/1000 Gigabit Ethernet phy
  */
 
+#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/kernel.h>
@@ -49,38 +46,41 @@ __FBSDID("$FreeBSD$");
 
 #include "miibus_if.h"
 
-#define MCOMMPHY_OUI                    0x000000
-#define MCOMMPHY_MODEL                  0x10
-#define MCOMMPHY_REV                    0x0a
+#define	MCOMMPHY_OUI			0x000000
+#define	MCOMMPHY_MODEL			0x10
+#define	MCOMMPHY_REV			0x0a
 
-#define EXT_REG_ADDR                    0x1e
-#define EXT_REG_DATA                    0x1f
+#define	EXT_REG_ADDR			0x1e
+#define	EXT_REG_DATA			0x1f
 
 /* Extended registers */
-#define PHY_CLOCK_GATING_REG            0x0c
-#define  RX_CLK_DELAY_EN                0x0001
-#define  CLK_25M_SEL                    0x0006
-#define  TX_CLK_DELAY_SEL               0x00f0
-#define PHY_SLEEP_CONTROL1_REG          0x27
-#define  PLLON_IN_SLP                   0x4000
+#define	PHY_CLOCK_GATING_REG		0x0c
+#define	 RX_CLK_DELAY_EN		0x0001
+#define	 CLK_25M_SEL			0x0006
+#define	 CLK_25M_SEL_125M		3
+#define	 TX_CLK_DELAY_SEL		0x00f0
+#define	PHY_SLEEP_CONTROL1_REG		0x27
+#define	 PLLON_IN_SLP			0x4000
 
+#define	LOWEST_SET_BIT(mask)		((((mask) - 1) & (mask)) ^ (mask))
+#define	SHIFTIN(x, mask)		((x) * LOWEST_SET_BIT(mask))
 
 static int
 mcommphy_service(struct mii_softc *sc, struct mii_data *mii, int cmd)
 {
 	switch (cmd) {
 	case MII_POLLSTAT:
-                break;
+		break;
 
-        case MII_MEDIACHG:
-                mii_phy_setmedia(sc);
-                break;
+	case MII_MEDIACHG:
+		mii_phy_setmedia(sc);
+		break;
 
-        case MII_TICK:
-                if (mii_phy_tick(sc) == EJUSTRETURN)
-                        return 0;
-                break;
-        }
+	case MII_TICK:
+		if (mii_phy_tick(sc) == EJUSTRETURN)
+			return (0);
+		break;
+	}
 
 	/* Update the media status. */
 	PHY_STATUS(sc);
@@ -103,16 +103,16 @@ mcommphy_probe(device_t dev)
 	struct mii_attach_args *ma = device_get_ivars(dev);
 
 	/*
-         * The YT8511C reports an OUI of 0. Best we can do here is to match
-         * exactly the contents of the PHY identification registers.
-         */
-        if (MII_OUI(ma->mii_id1, ma->mii_id2) == MCOMMPHY_OUI &&
-            MII_MODEL(ma->mii_id2) == MCOMMPHY_MODEL &&
-            MII_REV(ma->mii_id2) == MCOMMPHY_REV) {
+	 * The YT8511C reports an OUI of 0. Best we can do here is to match
+	 * exactly the contents of the PHY identification registers.
+	 */
+	if (MII_OUI(ma->mii_id1, ma->mii_id2) == MCOMMPHY_OUI &&
+	    MII_MODEL(ma->mii_id2) == MCOMMPHY_MODEL &&
+	    MII_REV(ma->mii_id2) == MCOMMPHY_REV) {
 		device_set_desc(dev, "Motorcomm YT8511 media interface");
-                return BUS_PROBE_DEFAULT;
-        }
-	return ENXIO;
+		return BUS_PROBE_DEFAULT;
+	}
+	return (ENXIO);
 }
 
 static int
@@ -128,39 +128,39 @@ mcommphy_attach(device_t dev)
 	/* begin chip stuff */
 	oldaddr = PHY_READ(sc, EXT_REG_ADDR);
 
-        PHY_WRITE(sc, EXT_REG_ADDR, PHY_CLOCK_GATING_REG);
-        data = PHY_READ(sc, EXT_REG_DATA);
-        data &= ~CLK_25M_SEL;
-        data |= 0x06;
-        if (sc->mii_flags & MIIF_RX_DELAY) {
-                data |= RX_CLK_DELAY_EN;
-        } else {
-                data &= ~RX_CLK_DELAY_EN;
-        }
-        data &= ~TX_CLK_DELAY_SEL;
-        if (sc->mii_flags & MIIF_TX_DELAY) {
-                data |= 0xf0;
-        } else {
-                data |= 0x20;
-        }
-        PHY_WRITE(sc, EXT_REG_DATA, data);
+	PHY_WRITE(sc, EXT_REG_ADDR, PHY_CLOCK_GATING_REG);
+	data = PHY_READ(sc, EXT_REG_DATA);
+	data &= ~CLK_25M_SEL;
+	data |= SHIFTIN(CLK_25M_SEL_125M, CLK_25M_SEL);;
+	if (sc->mii_flags & MIIF_RX_DELAY) {
+		data |= RX_CLK_DELAY_EN;
+	} else {
+		data &= ~RX_CLK_DELAY_EN;
+	}
+	data &= ~TX_CLK_DELAY_SEL;
+	if (sc->mii_flags & MIIF_TX_DELAY) {
+		data |= SHIFTIN(0xf, TX_CLK_DELAY_SEL);
+	} else {
+		data |= SHIFTIN(0x2, TX_CLK_DELAY_SEL);
+	}
+	PHY_WRITE(sc, EXT_REG_DATA, data);
 
-        PHY_WRITE(sc, EXT_REG_ADDR, PHY_SLEEP_CONTROL1_REG);
-        data = PHY_READ(sc, EXT_REG_DATA);
-        data |= PLLON_IN_SLP;
-        PHY_WRITE(sc, EXT_REG_DATA, data);
+	PHY_WRITE(sc, EXT_REG_ADDR, PHY_SLEEP_CONTROL1_REG);
+	data = PHY_READ(sc, EXT_REG_DATA);
+	data |= PLLON_IN_SLP;
+	PHY_WRITE(sc, EXT_REG_DATA, data);
 
-        PHY_WRITE(sc, EXT_REG_ADDR, oldaddr);
+	PHY_WRITE(sc, EXT_REG_ADDR, oldaddr);
 	/* end chip stuff */
 
-        sc->mii_capabilities = PHY_READ(sc, MII_BMSR) & sc->mii_capmask;
-        if (sc->mii_capabilities & BMSR_EXTSTAT)
-                sc->mii_extcapabilities = PHY_READ(sc, MII_EXTSR);
-        device_printf(dev, " ");
-        mii_phy_add_media(sc);
-        printf("\n");
+	sc->mii_capabilities = PHY_READ(sc, MII_BMSR) & sc->mii_capmask;
+	if (sc->mii_capabilities & BMSR_EXTSTAT)
+		sc->mii_extcapabilities = PHY_READ(sc, MII_EXTSR);
+	device_printf(dev, " ");
+	mii_phy_add_media(sc);
+	printf("\n");
 
-        MIIBUS_MEDIAINIT(sc->mii_dev);
+	MIIBUS_MEDIAINIT(sc->mii_dev);
 
 	return (0);
 }
@@ -175,12 +175,10 @@ static device_method_t mcommphy_methods[] = {
 	DEVMETHOD_END
 };
 
-static devclass_t mcommphy_devclass;
-
 static driver_t mcommphy_driver = {
 	"mcommphy",
 	mcommphy_methods,
 	sizeof(struct mii_softc)
 };
 
-DRIVER_MODULE(mcommphy, miibus, mcommphy_driver, mcommphy_devclass, 0, 0);
+DRIVER_MODULE(mcommphy, miibus, mcommphy_driver, 0, 0);
