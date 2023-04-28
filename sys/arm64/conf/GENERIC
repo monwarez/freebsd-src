@@ -288,7 +288,7 @@ device		re			# RealTek 8139C+/8169/8169S/8110S
 device		smc			# SMSC LAN91C111
 device		vnic			# Cavium ThunderX NIC
 device		dpaa2			# Data Path Acceleration Architecture (2nd Gen)
-device		eqos
+device		eqos			# DesignWare Ethernet Quality Of Service
 
 # Etherswitch devices
 device		etherswitch		# Enable etherswitch support
