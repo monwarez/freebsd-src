@@ -64,5 +64,6 @@ struct rk_clk_pll_def {
 int rk3066_clk_pll_register(struct clkdom *clkdom, struct rk_clk_pll_def *clkdef);
 int rk3328_clk_pll_register(struct clkdom *clkdom, struct rk_clk_pll_def *clkdef);
 int rk3399_clk_pll_register(struct clkdom *clkdom, struct rk_clk_pll_def *clkdef);
+int rk3568_clk_pll_register(struct clkdom *clkdom, struct rk_clk_pll_def *clkdef);
 
 #endif /* _RK_CLK_PLL_H_ */

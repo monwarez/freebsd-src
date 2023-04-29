@@ -245,6 +245,10 @@ rk_cru_attach(device_t dev)
 			rk3399_clk_pll_register(sc->clkdom,
 			    sc->clks[i].clk.pll);
 			break;
+		case RK3568_CLK_PLL:
+			rk3568_clk_pll_register(sc->clkdom,
+			    sc->clks[i].clk.pll);
+			break;
 		case RK_CLK_COMPOSITE:
 			rk_clk_composite_register(sc->clkdom,
 			    sc->clks[i].clk.composite);
