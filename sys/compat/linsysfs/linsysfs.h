@@ -28,11 +28,32 @@
 #ifndef _COMPAT_LINSYSFS_LINSYSFS_H_
 #define _COMPAT_LINSYSFS_LINSYSFS_H_
 
+#ifdef MALLOC_DECLARE
 MALLOC_DECLARE(M_LINSYSFS);
+#endif
 
 extern struct pfs_node *net;
 
 void	linsysfs_net_init(void);
 void	linsysfs_net_uninit(void);
+
+typedef struct pfs_node *linsysfs_bus_cb_t(device_t, device_t,
+		    struct pfs_node *, struct pfs_node *);
+
+void linsysfs_bus_drm(struct pfs_node *, struct pfs_node *, device_t);
+
+int linsysfs_fill_data(PFS_FILL_ARGS);
+char *linsysfs_full_pfs_path(const struct pfs_node *);
+
+struct pfs_node *linsysfs_create_dir(struct pfs_node *, const char *,
+		    pfs_attr_t, pfs_vis_t, pfs_destroy_t);
+struct pfs_node	*linsysfs_create_file(struct pfs_node *, const char *,
+		    pfs_fill_t, pfs_attr_t, pfs_vis_t,
+		    pfs_destroy_t, int, void *);
+struct pfs_node	*linsysfs_create_link(struct pfs_node *, const char *,
+		    pfs_fill_t, pfs_attr_t, pfs_vis_t,
+		    pfs_destroy_t, int, void *);
+struct pfs_node	*linsysfs_find_pcinode(device_t);
+
 
 #endif /* _COMPAT_LINSYSFS_LINSYSFS_H_ */
