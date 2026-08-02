@@ -374,7 +374,7 @@ linsysfs_run_bus(device_t dev, struct pfs_node *dir, struct pfs_node *scsi,
 			name = devclass_get_name(devclass);
 		else
 			name = NULL;
-		if (name != NULL && strcmp(name, DRMN_DEV) == 0 &&
+		if (name != NULL && (strcmp(name, DRMN_DEV) == 0 || device_get_unit(dev) >= 128) &&
 		    device_get_unit(dev) >= 0) {
 			dinfo = device_get_ivars(parent);
 			if (dinfo != NULL && dinfo->cfg.baseclass == PCIC_DISPLAY) {
@@ -392,8 +392,16 @@ linsysfs_run_bus(device_t dev, struct pfs_node *dir, struct pfs_node *scsi,
 				    &linsysfs_fill_uevent_drm, NULL, NULL, NULL,
 				    PFS_RD);
 				cur_file->pn_data = (void*)dev;
+				if (device_get_unit(dev) >= 128)
+				{
+				sprintf(devname, "renderD%d",
+				    device_get_unit(dev));
+				}
+				else
+				{
 				sprintf(devname, "card%d",
 				    device_get_unit(dev));
+				}
 				pfs_create_dir(drm, &sub_dir, devname, NULL,
 				    NULL, NULL, 0);
 				pfs_create_link(sub_dir, &cur_file, "device",
