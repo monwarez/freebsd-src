@@ -113,6 +113,8 @@
         ..
         mmc
         ..
+        ntsync
+        ..
         nvme
         ..
         scsi
